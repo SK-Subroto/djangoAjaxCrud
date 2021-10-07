@@ -1,0 +1,88 @@
+<script>
+    $("#btnsave").click(() => {
+        {#console.log('clicked')#}
+        let output = ""
+        const nm = $("#nameid").val();
+        const em = $("#emailid").val();
+        const pw = $("#passwordid").val();
+        const csr = $("input[name=csrfmiddlewaretoken]").val();
+
+        if(nm === ''){
+            alert('Please enter your name');
+        } else if (em === '') {
+            alert('Please enter your email');
+        } else if (pw === ""){
+            alert('Please enter your password');
+        } else {
+            myData = { name: nm, email: em, password: pw, csrfmiddlewaretoken: csr}
+            $.ajax({
+                url: "{% url 'save' %}",
+                method: "POST",
+                data: myData,
+                success: (data) => {
+                    {#console.log(data)#}
+                    stu = data.student;
+                    if (data.status == 'save'){
+                        console.log("Form submitted sucessfully");
+                        {#console.log(data.student);#}
+                        for (const s of stu) {
+                            output += `
+                                <tr>
+                                    <td>${ s.id }</td>
+                                    <td>${ s.name }</td>
+                                    <td>${ s.email }</td>
+                                    <td>${ s.password }</td>
+                                    <td>
+                                        <input
+                                           type="button"
+                                           data-sid="${ s.id }"
+                                           class="btn btn-warning btn-sm"
+                                           value="Edit"
+                                        />
+                                        <input
+                                           type="button"
+                                           data-sid="${ s.id }"
+                                           class="btn btn-danger btn-sm btn-del"
+                                           value="Delete"
+                                        />
+                                    </td>
+                                </tr>
+                            `
+                        }
+
+                        $("tbody").html(output);
+                        $("form")[0].reset();
+                    }
+
+                    if (data.status == 0) {
+                        console.log('Unable to save form');
+                    }
+                },
+            })
+        }
+
+        {#console.log(nm, em, pw);#}
+    })
+
+    // delete data
+$("tbody").on("click", ".btn-del", function () {
+    console.log("Delete button");
+    const id = $(this).attr("data-sid");
+    const csr = $("input[name=csrfmiddlewaretoken]").val();
+    // console.log(id);
+    myData = { sid: id, csrfmiddlewaretoken: csr };
+    myThis = this
+    $.ajax({
+        url: "{% url 'delete' %}",
+        method: "POST",
+        data: myData,
+        success: function (data) {
+            // console.log(data);
+            if (data.status == 1){
+                console.log("delete")
+                $(myThis).closest("tr").fadeOut();
+            }
+        },
+    });
+});
+</script>
